@@ -319,16 +319,18 @@ def _gen_comparison_table(m: dict) -> str:
     speed_html = f'<span class="{speed_cls}">{abs(speed_chg)}% {speed_word} ({q_order[-1]} vs {q_order[0]})</span>'
 
     return f'''
-      <table class="q-table">
-        <thead><tr>{header_cells}</tr></thead>
-        <tbody>
-          {row("Total Tickets", counts, cnt_trend)}
-          {row("Avg Resolution", avgs, speed_html)}
-          {row("Top Request Type", tops)}
-          {row("Peak Month", peaks)}
-          {row("Completion Rate", comps)}
-        </tbody>
-      </table>'''
+      <div class="table-wrap">
+        <table class="q-table">
+          <thead><tr>{header_cells}</tr></thead>
+          <tbody>
+            {row("Total Tickets", counts, cnt_trend)}
+            {row("Avg Resolution", avgs, speed_html)}
+            {row("Top Request Type", tops)}
+            {row("Peak Month", peaks)}
+            {row("Completion Rate", comps)}
+          </tbody>
+        </table>
+      </div>'''
 
 
 def _gen_cat_bars_js(m: dict) -> str:
@@ -401,13 +403,13 @@ def _gen_q_panel(q: str, m: dict) -> str:
       <div class="chart-grid">
         <div class="chart-card">
           <h3>Monthly Tickets — {q}</h3>
-          <div class="chart-wrap" style="height:220px">
+          <div class="chart-wrap chart-h-sm">
             <canvas id="{q}-monthly"></canvas>
           </div>
         </div>
         <div class="chart-card">
           <h3>Request Categories — {q}</h3>
-          <div class="chart-wrap" style="height:220px">
+          <div class="chart-wrap chart-h-sm">
             <canvas id="{q}-cats"></canvas>
           </div>
         </div>
@@ -416,10 +418,12 @@ def _gen_q_panel(q: str, m: dict) -> str:
     <div class="section">
       <div class="section-title">{q} Category Breakdown</div>
       <div class="chart-card">
-        <table class="q-table">
-          <thead><tr><th>Category</th><th>Count</th><th>% of {q}</th></tr></thead>
-          <tbody>{_gen_cat_table_rows(qd)}</tbody>
-        </table>
+        <div class="table-wrap">
+          <table class="q-table">
+            <thead><tr><th>Category</th><th>Count</th><th>% of {q}</th></tr></thead>
+            <tbody>{_gen_cat_table_rows(qd)}</tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>'''
@@ -522,12 +526,13 @@ CSS = r"""
   .kpi-sub { font-size: 12px; color: var(--muted); }
 
   /* ── Chart cards ──────────────────────────────────────────────────────────── */
-  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-width: 0; }
+  .chart-grid > * { min-width: 0; }
   @media (max-width: 900px) { .chart-grid { grid-template-columns: 1fr; } }
-  .chart-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .chart-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; min-width: 0; }
   .chart-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
   .chart-card .sub { font-size: 12px; color: var(--muted); margin-top: -10px; margin-bottom: 14px; }
-  .chart-wrap { position: relative; }
+  .chart-wrap { position: relative; min-width: 0; overflow: hidden; }
 
   /* ── Insights banner ──────────────────────────────────────────────────────── */
   .top-req-banner { background: linear-gradient(135deg,rgba(249,115,22,.12),rgba(234,88,12,.07)); border: 1px solid rgba(249,115,22,.35); border-radius: var(--radius); padding: 20px 24px; display: flex; align-items: center; gap: 20px; }
@@ -562,6 +567,79 @@ CSS = r"""
   .q-panel { display: none; }
   .q-panel.active { display: block; }
   .footer { text-align: center; padding: 24px; color: var(--muted); font-size: 12px; }
+
+  /* ── Chart height utility classes ─────────────────────────────────────────── */
+  .chart-h-sm  { height: 220px; }
+  .chart-h-md  { height: 260px; }
+  .chart-h-lg  { height: 310px; }
+
+  /* ── Overflow wrapper for wide tables ─────────────────────────────────────── */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-wrap .q-table { min-width: 480px; }
+
+  /* ── Responsive: tablet (≤ 900px) ─────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .chart-grid { grid-template-columns: 1fr; }
+    .chart-h-lg { height: 260px; }
+  }
+
+  /* ── Responsive: mobile (≤ 640px) ─────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    body { font-size: 15px; }
+
+    .header { padding: 14px 16px 12px; gap: 10px; }
+    .header-left h1 { font-size: 19px; }
+    .header-left p  { font-size: 12px; }
+    .badge      { font-size: 11px; padding: 4px 9px; }
+    .theme-btn  { font-size: 11px; padding: 4px 9px; }
+
+    .tabs-wrap {
+      padding: 10px 16px 0;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .tabs-wrap::-webkit-scrollbar { display: none; }
+    .tab { padding: 8px 16px; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
+
+    .main { margin: 0 10px; padding: 0 14px 28px; }
+    .section { padding: 16px 0; }
+    .section-title { font-size: 11px; }
+
+    .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 8px; }
+    .kpi { padding: 13px 14px; }
+    .kpi-value { font-size: 28px; }
+    .kpi-sub   { font-size: 11px; }
+
+    .chart-h-sm { height: 190px; }
+    .chart-h-md { height: 210px; }
+    .chart-h-lg { height: 240px; }
+
+    .chart-card { padding: 14px; }
+    .chart-card h3 { font-size: 13px; margin-bottom: 10px; }
+    .chart-card .sub { font-size: 11px; }
+
+    .cat-row .label { width: 110px; font-size: 12px; }
+    .legend { gap: 10px; }
+    .legend-item { font-size: 12px; }
+
+    .top-req-banner { flex-direction: column; gap: 12px; padding: 14px 16px; }
+    .top-req-icon   { font-size: 28px; }
+    .top-req-info h2 { font-size: 15px; }
+    .top-req-info p  { font-size: 12px; }
+
+    .q-table { font-size: 13px; }
+    .q-table th, .q-table td { padding: 8px 10px; }
+  }
+
+  /* ── Responsive: small phone (≤ 400px) ────────────────────────────────────── */
+  @media (max-width: 400px) {
+    .header-right { gap: 4px; }
+    .badge { display: none; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .cat-row .label { width: 90px; font-size: 11px; }
+  }
 """
 
 
@@ -655,12 +733,12 @@ def generate_html(m: dict, insights: dict, csv_name: str, gen_date: str) -> str:
         <div class="chart-card">
           <h3>Monthly Ticket Volume</h3>
           <p class="sub">Colour = quarter</p>
-          <div class="chart-wrap" style="height:240px"><canvas id="monthly-chart"></canvas></div>
+          <div class="chart-wrap chart-h-md"><canvas id="monthly-chart"></canvas></div>
         </div>
         <div class="chart-card">
           <h3>Request Type Distribution</h3>
           <p class="sub">Inferred from Summary &amp; Description</p>
-          <div class="chart-wrap" style="height:240px"><canvas id="donut-chart"></canvas></div>
+          <div class="chart-wrap chart-h-md"><canvas id="donut-chart"></canvas></div>
         </div>
       </div>
     </div>
@@ -677,12 +755,12 @@ def generate_html(m: dict, insights: dict, csv_name: str, gen_date: str) -> str:
         <div class="chart-card">
           <h3>Tickets by Assignee</h3>
           <p class="sub">Top 10</p>
-          <div class="chart-wrap" style="height:280px"><canvas id="assignee-chart"></canvas></div>
+          <div class="chart-wrap chart-h-lg"><canvas id="assignee-chart"></canvas></div>
         </div>
         <div class="chart-card">
           <h3>Avg Resolution Time by Assignee</h3>
           <p class="sub">Days from Created → Updated (≥2 tickets)</p>
-          <div class="chart-wrap" style="height:280px"><canvas id="assignee-time-chart"></canvas></div>
+          <div class="chart-wrap chart-h-lg"><canvas id="assignee-time-chart"></canvas></div>
         </div>
       </div>
     </div>
@@ -691,7 +769,7 @@ def generate_html(m: dict, insights: dict, csv_name: str, gen_date: str) -> str:
       <div class="section-title">Requests by Reporter</div>
       <div class="chart-card">
         <h3>Top 12 Reporters</h3>
-        <div class="chart-wrap" style="height:280px"><canvas id="reporter-chart"></canvas></div>
+        <div class="chart-wrap chart-h-lg"><canvas id="reporter-chart"></canvas></div>
       </div>
     </div>
 
@@ -700,12 +778,12 @@ def generate_html(m: dict, insights: dict, csv_name: str, gen_date: str) -> str:
       <div class="chart-grid">
         <div class="chart-card">
           <h3>Tickets by Priority</h3>
-          <div class="chart-wrap" style="height:240px"><canvas id="priority-chart"></canvas></div>
+          <div class="chart-wrap chart-h-md"><canvas id="priority-chart"></canvas></div>
         </div>
         <div class="chart-card">
           <h3>Resolution Time Distribution</h3>
           <p class="sub">Created → Last Updated</p>
-          <div class="chart-wrap" style="height:240px"><canvas id="resolution-chart"></canvas></div>
+          <div class="chart-wrap chart-h-md"><canvas id="resolution-chart"></canvas></div>
         </div>
       </div>
     </div>
@@ -943,6 +1021,23 @@ function showTab(name, el) {{
   if (saved) document.documentElement.setAttribute('data-theme', saved);
   updateThemeBtn();
   initCharts();
+
+  const resizeAll = () => {{
+    Object.values(charts).forEach(c => {{ try {{ c.resize(); }} catch (_) {{}} }});
+  }};
+  // Observe the main container — one observer catches all grid reflows including 2-col layouts.
+  // Double rAF lets the CSS layout fully settle before Chart.js reads new dimensions.
+  if (typeof ResizeObserver !== 'undefined') {{
+    const ro = new ResizeObserver(() => requestAnimationFrame(() => requestAnimationFrame(resizeAll)));
+    const mainEl = document.querySelector('.main');
+    if (mainEl) ro.observe(mainEl);
+  }}
+  // Also run debounced window resize in parallel (not a fallback)
+  let _rt;
+  window.addEventListener('resize', () => {{
+    clearTimeout(_rt);
+    _rt = setTimeout(resizeAll, 150);
+  }});
 }})();
 </script>
 </body>
