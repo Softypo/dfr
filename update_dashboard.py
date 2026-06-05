@@ -46,10 +46,10 @@ CATEGORY_RULES = [
     ('Other',                lambda t: True),
 ]
 
-PALETTE       = ['#4f6ef7','#f76b4f','#29c48a','#f7c84f','#a78bfa','#34d399',
-                 '#fb923c','#60a5fa','#f472b6','#a3e635','#38bdf8','#e879f9','#4ade80']
-Q_HUE_COLORS  = ['#4f6ef7','#f76b4f','#29c48a','#f7c84f','#a78bfa','#38bdf8',
-                 '#fb923c','#f472b6']
+PALETTE       = ['#f97316','#f59e0b','#ef4444','#fb923c','#a78bfa','#34d399',
+                 '#fbbf24','#ea580c','#60a5fa','#f43f5e','#4ade80','#d97706','#e879f9']
+Q_HUE_COLORS  = ['#f97316','#f59e0b','#ea580c','#fbbf24','#fb923c','#d97706',
+                 '#c2410c','#fde68a']
 
 # ── Data loading ──────────────────────────────────────────────────────────────
 
@@ -253,7 +253,7 @@ def _gen_overall_kpis(m: dict) -> str:
 
     return f'''
       <div class="kpi-grid">
-        {_gen_kpi("Total Tickets", str(m["total"]), "YTD total", "#4f6ef7")}
+        {_gen_kpi("Total Tickets", str(m["total"]), "YTD total", "#f97316")}
         {_gen_kpi("Completion Rate", f'{m["completion_pct"]:.0f}<span style=\"font-size:18px\">%</span>',
                   f'{m["done"]} Done · {m["cancelled"]} Cancelled', "#29c48a")}
         {_gen_kpi("Avg Resolution", f'{m["avg_days"]}<span style="font-size:16px">d</span>',
@@ -428,74 +428,140 @@ def _gen_q_panel(q: str, m: dict) -> str:
 # ── Full HTML assembly ────────────────────────────────────────────────────────
 
 CSS = r"""
+  /* ── Dark theme (default) — orange on charcoal ───────────────────────────── */
   :root {
-    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
-    --border: #2d3149; --accent: #4f6ef7; --green: #29c48a;
-    --yellow: #f7c84f; --red: #f74f4f; --text: #e2e8f0; --muted: #8892a4; --radius: 12px;
+    --bg: #111111; --surface: #1c1c1c; --surface2: #272727;
+    --border: #3a3a3a; --accent: #f97316; --green: #22c55e;
+    --yellow: #f97316; --red: #ef4444; --text: #ffffff; --muted: #c0c0c0;
+    --radius: 12px; --card-sep: rgba(255,255,255,.08);
+    color-scheme: dark;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+  /* ── Light theme: OS default (no explicit override) ───────────────────────── */
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #dcdcdc; --surface: #f2f2f2; --surface2: #e8e8e8;
+      --border: #c4c4c4; --accent: #ea580c; --text: #111111; --muted: #555555;
+      --card-sep: rgba(0,0,0,.12);
+      color-scheme: light;
+    }
+  }
+  /* ── Explicit overrides ───────────────────────────────────────────────────── */
+  :root[data-theme="light"] {
+    --bg: #dcdcdc; --surface: #f2f2f2; --surface2: #e8e8e8;
+    --border: #c4c4c4; --accent: #ea580c; --text: #111111; --muted: #555555;
+    --card-sep: rgba(0,0,0,.12);
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #111111; --surface: #1c1c1c; --surface2: #272727;
+    --border: #3a3a3a; --text: #ffffff; --muted: #c0c0c0;
+    --card-sep: rgba(255,255,255,.08);
+    color-scheme: dark;
+  }
 
-  .header { background: linear-gradient(135deg,#1a1d27 0%,#141627 100%); border-bottom: 1px solid var(--border); padding: 24px 32px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  .header-left h1 { font-size: 22px; font-weight: 700; background: linear-gradient(90deg,#a5b4fc,#7c5cfc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .header-left p { color: var(--muted); font-size: 12px; margin-top: 2px; }
-  .header-right { display: flex; align-items: center; gap: 8px; }
-  .badge { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; font-size: 12px; color: var(--muted); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 16px; line-height: 1.5;
+    transition: background .25s, color .2s;
+  }
+
+  /* ── Header ───────────────────────────────────────────────────────────────── */
+  .header {
+    background: linear-gradient(135deg,#1c1c1c 0%,#111111 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 32px 20px; display: flex; align-items: center;
+    justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    transition: background .25s;
+  }
+  :root[data-theme="light"] .header { background: linear-gradient(135deg,#f2f2f2 0%,#e8e8e8 100%); }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .header { background: linear-gradient(135deg,#f2f2f2 0%,#e8e8e8 100%); }
+  }
+  .header-left h1 { font-size: 24px; font-weight: 700; background: linear-gradient(90deg,#fdba74,#f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .header-left p { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; font-size: 13px; color: var(--muted); }
   .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
 
+  /* ── Theme toggle button ──────────────────────────────────────────────────── */
+  .theme-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 6px 14px; cursor: pointer;
+    font-size: 13px; color: var(--muted); font-family: inherit;
+    transition: color .2s, border-color .2s, background .25s;
+    white-space: nowrap;
+  }
+  .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+  .theme-btn svg { flex-shrink: 0; vertical-align: middle; }
+
+  /* ── Tabs ─────────────────────────────────────────────────────────────────── */
   .tabs-wrap { padding: 16px 32px 0; display: flex; gap: 4px; flex-wrap: wrap; }
-  .tab { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 8px 8px 0 0; padding: 8px 22px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all .2s; }
+  .tab {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 8px 8px 0 0; padding: 9px 24px; cursor: pointer;
+    font-size: 15px; font-weight: 500; transition: all .2s; font-family: inherit;
+  }
   .tab:hover { color: var(--text); background: var(--surface); }
   .tab.active { background: var(--surface); border-bottom-color: var(--surface); color: var(--text); font-weight: 600; }
 
+  /* ── Main panel ───────────────────────────────────────────────────────────── */
   .main { padding: 0 32px 40px; background: var(--surface); border: 1px solid var(--border); border-radius: 0 var(--radius) var(--radius) var(--radius); margin: 0 32px; }
   .section { padding: 24px 0; border-bottom: 1px solid var(--border); }
   .section:last-child { border-bottom: none; }
-  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 16px; }
+  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 16px; }
 
-  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
-  .kpi { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; position: relative; overflow: hidden; }
+  /* ── KPI cards ────────────────────────────────────────────────────────────── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .kpi { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; position: relative; overflow: hidden; }
   .kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--kpi-color, var(--accent)); }
-  .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
-  .kpi-value { font-size: 32px; font-weight: 700; margin: 6px 0 2px; color: var(--text); line-height: 1; }
-  .kpi-sub { font-size: 11px; color: var(--muted); }
+  .kpi-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+  .kpi-value { font-size: 36px; font-weight: 700; margin: 6px 0 2px; color: var(--text); line-height: 1; }
+  .kpi-sub { font-size: 12px; color: var(--muted); }
 
+  /* ── Chart cards ──────────────────────────────────────────────────────────── */
   .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   @media (max-width: 900px) { .chart-grid { grid-template-columns: 1fr; } }
-  .chart-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
-  .chart-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
-  .chart-card .sub { font-size: 11px; color: var(--muted); margin-top: -10px; margin-bottom: 14px; }
+  .chart-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .chart-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+  .chart-card .sub { font-size: 12px; color: var(--muted); margin-top: -10px; margin-bottom: 14px; }
   .chart-wrap { position: relative; }
 
-  .top-req-banner { background: linear-gradient(135deg,rgba(79,110,247,.15),rgba(124,92,252,.1)); border: 1px solid rgba(79,110,247,.3); border-radius: var(--radius); padding: 18px 22px; display: flex; align-items: center; gap: 18px; }
-  .top-req-icon { font-size: 36px; }
-  .top-req-info h2 { font-size: 17px; font-weight: 700; color: #a5b4fc; }
-  .top-req-info p { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  /* ── Insights banner ──────────────────────────────────────────────────────── */
+  .top-req-banner { background: linear-gradient(135deg,rgba(249,115,22,.12),rgba(234,88,12,.07)); border: 1px solid rgba(249,115,22,.35); border-radius: var(--radius); padding: 20px 24px; display: flex; align-items: center; gap: 20px; }
+  .top-req-icon { font-size: 38px; }
+  .top-req-info h2 { font-size: 19px; font-weight: 700; color: #fb923c; }
+  .top-req-info p { font-size: 13px; color: var(--muted); margin-top: 4px; }
   .insights-meta { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .insights-warn { font-size: 11px; color: #f7c84f; background: rgba(247,200,79,.1); border: 1px solid rgba(247,200,79,.3); border-radius: 20px; padding: 3px 10px; }
-  .insights-updated { font-size: 11px; color: var(--muted); }
+  .insights-warn { font-size: 12px; color: #f97316; background: rgba(249,115,22,.1); border: 1px solid rgba(249,115,22,.35); border-radius: 20px; padding: 3px 10px; }
+  .insights-updated { font-size: 12px; color: var(--muted); }
 
-  .cat-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-  .cat-row { display: flex; align-items: center; gap: 10px; }
-  .cat-row .label { width: 160px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
-  .cat-row .bar-wrap { flex: 1; background: var(--bg); border-radius: 4px; height: 14px; overflow: hidden; display: flex; }
+  /* ── Category bars ────────────────────────────────────────────────────────── */
+  .cat-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .cat-row { display: flex; align-items: center; gap: 12px; }
+  .cat-row .label { width: 170px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+  .cat-row .bar-wrap { flex: 1; background: var(--bg); border-radius: 4px; height: 15px; overflow: hidden; display: flex; }
   .cat-bar { height: 100%; opacity: .85; }
-  .cat-row .count { font-size: 11px; color: var(--muted); width: 28px; text-align: right; flex-shrink: 0; }
+  .cat-row .count { font-size: 12px; color: var(--muted); width: 30px; text-align: right; flex-shrink: 0; }
 
-  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
-  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  /* ── Legend ───────────────────────────────────────────────────────────────── */
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+  .legend-dot { width: 11px; height: 11px; border-radius: 2px; flex-shrink: 0; }
 
-  .q-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .q-table th { text-align: left; padding: 8px 12px; color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; border-bottom: 1px solid var(--border); }
-  .q-table td { padding: 9px 12px; border-bottom: 1px solid rgba(45,49,73,.5); }
+  /* ── Tables ───────────────────────────────────────────────────────────────── */
+  .q-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .q-table th { text-align: left; padding: 10px 14px; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; border-bottom: 1px solid var(--border); }
+  .q-table td { padding: 11px 14px; border-bottom: 1px solid var(--card-sep); }
   .q-table tr:last-child td { border-bottom: none; }
-  .trend-up { color: var(--green); font-size: 11px; }
-  .trend-dn { color: var(--red); font-size: 11px; }
+  .trend-up { color: var(--green); font-size: 12px; }
+  .trend-dn { color: var(--red); font-size: 12px; }
 
   .q-panel { display: none; }
   .q-panel.active { display: block; }
-  .footer { text-align: center; padding: 24px; color: var(--muted); font-size: 11px; }
+  .footer { text-align: center; padding: 24px; color: var(--muted); font-size: 12px; }
 """
 
 
@@ -546,6 +612,7 @@ def generate_html(m: dict, insights: dict, csv_name: str, gen_date: str) -> str:
     <p>Data Field Requests · {q_order[0] if q_order else ''} – {q_order[-1] if q_order else ''} · {q_count} tickets analysed</p>
   </div>
   <div class="header-right">
+    <button id="theme-toggle" class="theme-btn" onclick="toggleTheme()" title="Toggle theme"></button>
     <div class="badge"><span class="dot"></span>Generated {gen_date}</div>
     <div class="badge">{csv_name}</div>
   </div>
@@ -662,46 +729,74 @@ def generate_html(m: dict, insights: dict, csv_name: str, gen_date: str) -> str:
 <script>
 {_gen_js_data(m)}
 
-// ── Chart.js defaults ────────────────────────────────────────────────────────
-Chart.defaults.color = '#8892a4';
-Chart.defaults.borderColor = '#2d3149';
-Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
-Chart.defaults.font.size = 12;
-
+// ── Palette ───────────────────────────────────────────────────────────────────
 const PALETTE = {_j(PALETTE)};
 
-// ── Monthly bar ──────────────────────────────────────────────────────────────
-new Chart(document.getElementById('monthly-chart'), {{
-  type: 'bar',
-  data: {{
-    labels: M.months,
-    datasets: [{{ label: 'Tickets', data: M.monthlyValues,
-      backgroundColor: M.monthlyQs.map(q => M.qColors[q] + 'cc'),
-      borderColor:     M.monthlyQs.map(q => M.qColors[q]),
-      borderWidth: 1.5, borderRadius: 5, borderSkipped: false }}]
-  }},
-  options: {{ responsive: true, maintainAspectRatio: false,
-    plugins: {{ legend: {{ display: false }} }},
-    scales: {{ x: {{ grid: {{ display: false }} }}, y: {{ grid: {{ color: '#2d314960' }}, beginAtZero: true }} }}
-  }}
-}});
+// ── Theme helpers ─────────────────────────────────────────────────────────────
+function isDark() {{
+  const e = document.documentElement.getAttribute('data-theme');
+  if (e === 'dark')  return true;
+  if (e === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}}
 
-// ── Overall donut ────────────────────────────────────────────────────────────
-new Chart(document.getElementById('donut-chart'), {{
-  type: 'doughnut',
-  data: {{ labels: M.catLabels, datasets: [{{ data: M.catValues,
-    backgroundColor: PALETTE, borderColor: '#1a1d27', borderWidth: 2, hoverOffset: 8 }}] }},
-  options: {{ responsive: true, maintainAspectRatio: false, cutout: '58%',
-    plugins: {{
-      legend: {{ position: 'right', labels: {{ boxWidth: 11, padding: 8, font: {{ size: 11 }} }} }},
-      tooltip: {{ callbacks: {{ label: c => ` ${{c.label}}: ${{c.raw}} (${{(c.raw/M.total*100).toFixed(1)}}%)` }} }}
+function tc() {{
+  return isDark()
+    ? {{ grid: 'rgba(255,255,255,.07)', text: '#c0c0c0', sliceBorder: '#272727'  }}
+    : {{ grid: 'rgba(0,0,0,.12)',       text: '#555555', sliceBorder: '#e8e8e8'  }};
+}}
+
+// ── Chart registry ────────────────────────────────────────────────────────────
+const charts = {{}};
+
+function initCharts() {{
+  // Destroy previous instances before re-rendering
+  Object.values(charts).forEach(c => {{ try {{ c.destroy(); }} catch (_) {{}} }});
+
+  const t = tc();
+  Chart.defaults.color       = t.text;
+  Chart.defaults.borderColor = t.grid;
+  Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+  Chart.defaults.font.size   = 13;
+
+  // Reusable scale configs
+  const scX  = {{ grid: {{ display: false }},  ticks: {{ color: t.text }} }};
+  const scY  = {{ grid: {{ color: t.grid }},   ticks: {{ color: t.text }}, beginAtZero: true }};
+  const scYH = {{ grid: {{ display: false }},  ticks: {{ color: t.text, font: {{ size: 13 }} }} }};
+  const scXH = {{ grid: {{ color: t.grid }},   ticks: {{ color: t.text }}, beginAtZero: true }};
+  const noLeg = {{ legend: {{ display: false }} }};
+
+  // ── Monthly bar ─────────────────────────────────────────────────────────────
+  charts.monthly = new Chart(document.getElementById('monthly-chart'), {{
+    type: 'bar',
+    data: {{
+      labels: M.months,
+      datasets: [{{ label: 'Tickets', data: M.monthlyValues,
+        backgroundColor: M.monthlyQs.map(q => M.qColors[q] + 'cc'),
+        borderColor:     M.monthlyQs.map(q => M.qColors[q]),
+        borderWidth: 1.5, borderRadius: 5, borderSkipped: false }}]
+    }},
+    options: {{ responsive: true, maintainAspectRatio: false,
+      plugins: noLeg, scales: {{ x: scX, y: scY }}
     }}
-  }}
-}});
+  }});
 
-// ── Category stacked bars ────────────────────────────────────────────────────
-(function() {{
+  // ── Overall donut ───────────────────────────────────────────────────────────
+  charts.donut = new Chart(document.getElementById('donut-chart'), {{
+    type: 'doughnut',
+    data: {{ labels: M.catLabels, datasets: [{{ data: M.catValues,
+      backgroundColor: PALETTE, borderColor: t.sliceBorder, borderWidth: 2, hoverOffset: 8 }}] }},
+    options: {{ responsive: true, maintainAspectRatio: false, cutout: '58%',
+      plugins: {{
+        legend: {{ position: 'right', labels: {{ boxWidth: 12, padding: 10, color: t.text, font: {{ size: 13 }} }} }},
+        tooltip: {{ callbacks: {{ label: c => ` ${{c.label}}: ${{c.raw}} (${{(c.raw/M.total*100).toFixed(1)}}%)` }} }}
+      }}
+    }}
+  }});
+
+  // ── Category stacked bars (DOM, not Chart.js) ───────────────────────────────
   const container = document.getElementById('cat-bars');
+  container.innerHTML = '';
   const maxTotal = Math.max(...catData.totals);
   catData.labels.forEach((label, i) => {{
     const total = catData.totals[i];
@@ -719,112 +814,136 @@ new Chart(document.getElementById('donut-chart'), {{
       <span class="count">${{total}}</span>`;
     container.appendChild(row);
   }});
-}})();
 
-// ── Assignee bar ─────────────────────────────────────────────────────────────
-new Chart(document.getElementById('assignee-chart'), {{
-  type: 'bar',
-  data: {{ labels: M.asgnLabels, datasets: [{{ label: 'Tickets', data: M.asgnCounts,
-    backgroundColor: M.asgnCounts.map(v => `rgba(79,110,247,${{(0.4+v/Math.max(...M.asgnCounts)*0.6).toFixed(2)}})` ),
-    borderColor: '#4f6ef7', borderWidth: 1, borderRadius: 4 }}] }},
-  options: {{ indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-    plugins: {{ legend: {{ display: false }} }},
-    scales: {{ x: {{ grid: {{ color: '#2d314960' }}, beginAtZero: true }}, y: {{ grid: {{ display: false }}, ticks: {{ font: {{ size: 11 }} }} }} }}
-  }}
-}});
-
-// ── Assignee avg days ────────────────────────────────────────────────────────
-new Chart(document.getElementById('assignee-time-chart'), {{
-  type: 'bar',
-  data: {{ labels: M.asgnLabels, datasets: [{{ label: 'Avg Days', data: M.asgnAvgDays,
-    backgroundColor: M.asgnAvgDays.map(v => v>20?'#f74f4f99':v>7?'#f7c84f99':'#29c48a99'),
-    borderColor:     M.asgnAvgDays.map(v => v>20?'#f74f4f':v>7?'#f7c84f':'#29c48a'),
-    borderWidth: 1, borderRadius: 4 }}] }},
-  options: {{ indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-    plugins: {{ legend: {{ display: false }}, tooltip: {{ callbacks: {{ label: t => ` ${{t.raw}} days avg` }} }} }},
-    scales: {{ x: {{ grid: {{ color: '#2d314960' }}, beginAtZero: true }}, y: {{ grid: {{ display: false }}, ticks: {{ font: {{ size: 11 }} }} }} }}
-  }}
-}});
-
-// ── Reporter bar ─────────────────────────────────────────────────────────────
-new Chart(document.getElementById('reporter-chart'), {{
-  type: 'bar',
-  data: {{ labels: M.repLabels, datasets: [{{ label: 'Tickets Submitted', data: M.repValues,
-    backgroundColor: PALETTE.map(c => c+'bb'), borderColor: PALETTE, borderWidth: 1, borderRadius: 4 }}] }},
-  options: {{ indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-    plugins: {{ legend: {{ display: false }} }},
-    scales: {{ x: {{ grid: {{ color: '#2d314960' }}, beginAtZero: true }}, y: {{ grid: {{ display: false }}, ticks: {{ font: {{ size: 11 }} }} }} }}
-  }}
-}});
-
-// ── Priority donut ───────────────────────────────────────────────────────────
-new Chart(document.getElementById('priority-chart'), {{
-  type: 'doughnut',
-  data: {{ labels: M.prioLabels, datasets: [{{ data: M.prioValues,
-    backgroundColor: ['#f74f4f','#f7914f','#4f6ef7','#29c48a','#8892a4'],
-    borderColor: '#1a1d27', borderWidth: 2, hoverOffset: 6 }}] }},
-  options: {{ responsive: true, maintainAspectRatio: false, cutout: '55%',
-    plugins: {{
-      legend: {{ position: 'right', labels: {{ boxWidth: 11, padding: 10, font: {{ size: 11 }} }} }},
-      tooltip: {{ callbacks: {{ label: t => ` ${{t.label}}: ${{t.raw}} (${{(t.raw/M.total*100).toFixed(1)}}%)` }} }}
+  // ── Assignee count ──────────────────────────────────────────────────────────
+  charts.asgn = new Chart(document.getElementById('assignee-chart'), {{
+    type: 'bar',
+    data: {{ labels: M.asgnLabels, datasets: [{{ label: 'Tickets', data: M.asgnCounts,
+      backgroundColor: M.asgnCounts.map(v => `rgba(249,115,22,${{(0.35+v/Math.max(...M.asgnCounts)*0.65).toFixed(2)}})` ),
+      borderColor: '#f97316', borderWidth: 1, borderRadius: 4 }}] }},
+    options: {{ indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: noLeg, scales: {{ x: scXH, y: scYH }}
     }}
-  }}
-}});
+  }});
 
-// ── Resolution distribution ──────────────────────────────────────────────────
-new Chart(document.getElementById('resolution-chart'), {{
-  type: 'bar',
-  data: {{ labels: M.bucketLabels, datasets: [{{ label: 'Tickets', data: M.bucketValues,
-    backgroundColor: ['#29c48acc','#29c48a88','#4f6ef7cc','#f7c84f99','#f7914f99','#f74f4f99'],
-    borderColor:     ['#29c48a','#29c48a','#4f6ef7','#f7c84f','#f7914f','#f74f4f'],
-    borderWidth: 1.5, borderRadius: 5 }}] }},
-  options: {{ responsive: true, maintainAspectRatio: false,
-    plugins: {{ legend: {{ display: false }} }},
-    scales: {{ x: {{ grid: {{ display: false }} }}, y: {{ grid: {{ color: '#2d314960' }}, beginAtZero: true }} }}
-  }}
-}});
+  // ── Assignee avg resolution time ────────────────────────────────────────────
+  charts.asgnTime = new Chart(document.getElementById('assignee-time-chart'), {{
+    type: 'bar',
+    data: {{ labels: M.asgnLabels, datasets: [{{ label: 'Avg Days', data: M.asgnAvgDays,
+      backgroundColor: M.asgnAvgDays.map(v => v>20?'#ef444499':v>7?'#f9731699':'#22c55e99'),
+      borderColor:     M.asgnAvgDays.map(v => v>20?'#ef4444':v>7?'#f97316':'#22c55e'),
+      borderWidth: 1, borderRadius: 4 }}] }},
+    options: {{ indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {{ ...noLeg, tooltip: {{ callbacks: {{ label: t => ` ${{t.raw}} days avg` }} }} }},
+      scales: {{ x: scXH, y: scYH }}
+    }}
+  }});
 
-// ── Per-quarter charts ───────────────────────────────────────────────────────
-M.qOrder.forEach(q => {{
-  const qd = M.qChartData[q];
-  if (!qd) return;
+  // ── Reporter bar ────────────────────────────────────────────────────────────
+  charts.reporter = new Chart(document.getElementById('reporter-chart'), {{
+    type: 'bar',
+    data: {{ labels: M.repLabels, datasets: [{{ label: 'Tickets Submitted', data: M.repValues,
+      backgroundColor: PALETTE.map(c => c+'bb'), borderColor: PALETTE, borderWidth: 1, borderRadius: 4 }}] }},
+    options: {{ indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: noLeg, scales: {{ x: scXH, y: scYH }}
+    }}
+  }});
 
-  const mCanvas = document.getElementById(q + '-monthly');
-  if (mCanvas) {{
-    new Chart(mCanvas, {{
-      type: 'bar',
-      data: {{ labels: qd.monthly_labels, datasets: [{{ label: 'Tickets', data: qd.monthly_counts,
-        backgroundColor: qd.color + 'bb', borderColor: qd.color, borderWidth: 1.5, borderRadius: 6 }}] }},
-      options: {{ responsive: true, maintainAspectRatio: false,
-        plugins: {{ legend: {{ display: false }} }},
-        scales: {{ x: {{ grid: {{ display: false }} }}, y: {{ grid: {{ color: '#2d314960' }}, beginAtZero: true }} }}
+  // ── Priority donut ──────────────────────────────────────────────────────────
+  charts.priority = new Chart(document.getElementById('priority-chart'), {{
+    type: 'doughnut',
+    data: {{ labels: M.prioLabels, datasets: [{{ data: M.prioValues,
+      backgroundColor: ['#ef4444','#f97316','#f59e0b','#22c55e','#9ca3af'],
+      borderColor: t.sliceBorder, borderWidth: 2, hoverOffset: 6 }}] }},
+    options: {{ responsive: true, maintainAspectRatio: false, cutout: '55%',
+      plugins: {{
+        legend: {{ position: 'right', labels: {{ boxWidth: 12, padding: 10, color: t.text, font: {{ size: 13 }} }} }},
+        tooltip: {{ callbacks: {{ label: tt => ` ${{tt.label}}: ${{tt.raw}} (${{(tt.raw/M.total*100).toFixed(1)}}%)` }} }}
       }}
-    }});
-  }}
+    }}
+  }});
 
-  const cCanvas = document.getElementById(q + '-cats');
-  if (cCanvas) {{
-    new Chart(cCanvas, {{
-      type: 'doughnut',
-      data: {{ labels: qd.cat_labels, datasets: [{{ data: qd.cat_values,
-        backgroundColor: PALETTE, borderColor: '#1a1d27', borderWidth: 2, hoverOffset: 6 }}] }},
-      options: {{ responsive: true, maintainAspectRatio: false, cutout: '55%',
-        plugins: {{
-          legend: {{ position: 'right', labels: {{ boxWidth: 10, padding: 7, font: {{ size: 10 }} }} }},
-          tooltip: {{ callbacks: {{ label: t => ` ${{t.label}}: ${{t.raw}}` }} }}
+  // ── Resolution time distribution ────────────────────────────────────────────
+  charts.resolution = new Chart(document.getElementById('resolution-chart'), {{
+    type: 'bar',
+    data: {{ labels: M.bucketLabels, datasets: [{{ label: 'Tickets', data: M.bucketValues,
+      backgroundColor: ['#22c55ecc','#22c55e88','#f97316cc','#f59e0b99','#ef444499','#ef4444cc'],
+      borderColor:     ['#22c55e','#22c55e','#f97316','#f59e0b','#ef4444','#ef4444'],
+      borderWidth: 1.5, borderRadius: 5 }}] }},
+    options: {{ responsive: true, maintainAspectRatio: false,
+      plugins: noLeg, scales: {{ x: scX, y: scY }}
+    }}
+  }});
+
+  // ── Per-quarter charts ──────────────────────────────────────────────────────
+  M.qOrder.forEach(q => {{
+    const qd = M.qChartData[q];
+    if (!qd) return;
+
+    const mCanvas = document.getElementById(q + '-monthly');
+    if (mCanvas) {{
+      charts['q' + q + 'monthly'] = new Chart(mCanvas, {{
+        type: 'bar',
+        data: {{ labels: qd.monthly_labels, datasets: [{{ label: 'Tickets', data: qd.monthly_counts,
+          backgroundColor: qd.color + 'bb', borderColor: qd.color, borderWidth: 1.5, borderRadius: 6 }}] }},
+        options: {{ responsive: true, maintainAspectRatio: false,
+          plugins: noLeg, scales: {{ x: scX, y: scY }}
         }}
-      }}
-    }});
-  }}
-}});
+      }});
+    }}
 
-// ── Tab switching ────────────────────────────────────────────────────────────
+    const cCanvas = document.getElementById(q + '-cats');
+    if (cCanvas) {{
+      charts['q' + q + 'cats'] = new Chart(cCanvas, {{
+        type: 'doughnut',
+        data: {{ labels: qd.cat_labels, datasets: [{{ data: qd.cat_values,
+          backgroundColor: PALETTE, borderColor: t.sliceBorder, borderWidth: 2, hoverOffset: 6 }}] }},
+        options: {{ responsive: true, maintainAspectRatio: false, cutout: '55%',
+          plugins: {{
+            legend: {{ position: 'right', labels: {{ boxWidth: 11, padding: 8, color: t.text, font: {{ size: 12 }} }} }},
+            tooltip: {{ callbacks: {{ label: tt => ` ${{tt.label}}: ${{tt.raw}}` }} }}
+          }}
+        }}
+      }});
+    }}
+  }});
+}}
+
+// ── Theme toggle ──────────────────────────────────────────────────────────────
+const SUN_SVG  = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+const MOON_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+
+function updateThemeBtn() {{
+  const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  const dark = isDark();
+  btn.innerHTML = dark ? SUN_SVG + ' Light' : MOON_SVG + '  Dark';
+  btn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+}}
+
+function toggleTheme() {{
+  const next = !isDark();
+  document.documentElement.setAttribute('data-theme', next ? 'dark' : 'light');
+  localStorage.setItem('dfr-theme', next ? 'dark' : 'light');
+  updateThemeBtn();
+  initCharts();
+}}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
 function showTab(name, el) {{
   document.querySelectorAll('.q-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
   el.classList.add('active');
 }}
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+(function () {{
+  const saved = localStorage.getItem('dfr-theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  updateThemeBtn();
+  initCharts();
+}})();
 </script>
 </body>
 </html>"""
